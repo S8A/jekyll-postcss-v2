@@ -28,7 +28,7 @@ module PostCssV2
     end
 
     def process(page)
-      file_path = Pathname.new(page.site.dest + page.url)
+      file_path = Pathname.new(page.destination(page.site.dest))
       postcss_command = `#{@script} #{file_path} -r --config #{@config}`
       Jekyll.logger.info "PostCSS v2:",
                          "Rewrote #{page.url} #{postcss_command}"
@@ -36,12 +36,16 @@ module PostCssV2
   end
 end
 
-Jekyll::Hooks.register :pages, :post_write do |page|
-  if %r!\.css$! =~ page.url
-    engine = PostCssV2::Engine.new(page.site.source, {
-      script: page.site.config.dig('postcss', 'script'),
-      config: page.site.config.dig('postcss', 'config'),
-    })
-    engine.process(page)
+Jekyll::Hooks.register :site, :post_write do |site|
+  site.pages.each do |page|
+    Jekyll.logger.debug "PostCSS v2:",
+                        "Processing #{page.url}"
+    if %r!\.css$! =~ page.destination(site.dest)
+      engine = PostCssV2::Engine.new(site.source, {
+        script: site.config.dig("postcss", "script"),
+        config: site.config.dig("postcss", "config"),
+      })
+      engine.process(page)
+    end
   end
 end
