@@ -38,8 +38,6 @@ end
 
 Jekyll::Hooks.register :site, :post_write do |site|
   site.pages.each do |page|
-    Jekyll.logger.debug "PostCSS v2:",
-                        "Processing #{page.url}"
     if %r!\.css$! =~ page.destination(site.dest)
       engine = PostCssV2::Engine.new(site.source, {
         script: site.config.dig("postcss", "script"),
